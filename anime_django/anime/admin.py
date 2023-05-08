@@ -6,10 +6,16 @@ from .models import Anime, Gengre, Studio, Episode, Review, Vote, Follow
 admin.site.register([Gengre, Studio, Follow])
 
 
+class EpisodeInline(admin.StackedInline):
+    model = Episode
+
+
 @admin.register(Anime)
 class AnimeModelAdmin(admin.ModelAdmin):
     model = Anime
-    list_display = ['name', 'name_on_japan', 'status', 'release_date']
+    list_display = ['name',
+                    'name_on_japan', 'status', 'image_tag', 'release_date']
+    inlines = [EpisodeInline]
 
 
 @admin.register(Episode)

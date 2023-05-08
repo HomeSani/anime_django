@@ -4,6 +4,7 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.utils.html import format_html
 
 from .const import RELEASE_TYPES, STATUS
 
@@ -48,6 +49,9 @@ class Anime(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Anime, self).save(*args, **kwargs)
+
+    def image_tag(self):
+        return format_html('<img src="{}" height="50" />'.format(self.poster.url))
 
     def __str__(self):
         return self.name
