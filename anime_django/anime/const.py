@@ -1,10 +1,10 @@
 RELEASE_TYPES = (
-    ('film', 'Film'),
-    ('tv_serial', 'TV Serial'),
-    ('ova', 'OVA'),
+    ('Film', 'Film'),
+    ('TV Serial', 'TV Serial'),
+    ('OVA', 'OVA'),
 )
 
 STATUS = (
-    ('complete', 'Complete'),
-    ('on_going', 'On going')
+    ('Complete', 'Complete'),
+    ('On going', 'On going')
 )
