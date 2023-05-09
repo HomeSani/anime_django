@@ -1,6 +1,6 @@
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.forms import Form, CharField, PasswordInput
+from django.forms import Form, CharField, PasswordInput, IntegerField
 
 
 class SingupUserForm(UserCreationForm):
@@ -12,3 +12,11 @@ class SingupUserForm(UserCreationForm):
 class LoginUserForm(Form):
     username = CharField(max_length=128)
     password = CharField(widget=PasswordInput)
+
+
+class ReviewForm(Form):
+    text = CharField(max_length=500)
+
+
+class VoteForm(Form):
+    rating = IntegerField()

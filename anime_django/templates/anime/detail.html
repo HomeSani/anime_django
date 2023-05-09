@@ -1,0 +1,203 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block content %}
+
+  <style>
+    .rating-area {
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    .rating-area:not(:checked)>label.checked {
+      color: #e89f12;
+    }
+    
+    .rating-area:not(:checked)>input {
+      display: none;
+    }
+    
+    .rating-area:not(:checked)>label {
+      float: right;
+      width: 34px;
+      padding: 0;
+      cursor: pointer;
+      font-size: 32px;
+      line-height: 32px;
+      color: lightgrey;
+    }
+    
+    .rating-area:not(:checked)>label:before {
+      content: '';
+      font-family: 'FontAwesome';
+      font-size: 24px;
+    }
+    
+    .rating-area>input:checked~label {
+      color: #e89f12;
+      text-shadow: 1px 1px #c60;
+    }
+    
+    .rating-area:not(:checked)>label:hover,
+    .rating-area:not(:checked)>label:hover~label {
+      color: #e89f12;
+    }
+    
+    .rating-area>input:checked+label:hover,
+    .rating-area>input:checked+label:hover~label,
+    .rating-area>input:checked~label:hover,
+    .rating-area>input:checked~label:hover~label,
+    .rating-area>label:hover~input:checked~label {
+      color: #e89f12;
+      text-shadow: 1px 1px goldenrod;
+    }
+    
+    .rate-area>label:active {
+      position: relative;
+    }
+  </style>
+
+  <section class="anime-details spad">
+    <div class="container">
+      <div class="anime__details__content">
+        <div class="row">
+          <div class="col-lg-3">
+            <div class="anime__details__pic set-bg" data-setbg="{{ MEDIA_URL}}{{ anime.poster.url }}">
+              <div class="comment">
+                <i class="fa fa-comments"></i> {{ reviews|length }}
+              </div>
+              <div class="view">
+                <i class="fa fa-eye"></i> {{ anime.views }}
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-9">
+            <div class="anime__details__text">
+              <div class="anime__details__title">
+                <h3>{{ anime.name }}</h3>
+                <span>{{ anime.name_on_japan }}</span>
+              </div>
+              <div class="anime__details__rating">
+                <form class="rating-area" method="post">
+                  {% csrf_token %}
+                    {% for i in stars_count %}
+                      {% if forloop.revcounter in user_vote_count %}
+                        <input type="radio" class="checked" id="star-{{ forloop.revcounter }}" name="rating" value="{{ forloop.revcounter }}" onclick="submit()">
+                        <label class="checked" for="star-{{ forloop.revcounter }}"></label>
+                        {% else %}
+                        <input type="radio" id="star-{{ forloop.revcounter }}" name="rating" value="{{ forloop.revcounter }}" onclick="submit()">
+                        <label for="star-{{ forloop.revcounter }}"></label>
+                        {% endif %}
+                    {% endfor %}
+                </form>
+                <span>{{ rating }} | {{ votes_count }} Votes</span>
+              </div>
+              <p>{{ anime.description }}</p>
+              <div class="anime__details__widget">
+                <div class="row">
+                  <div class="col-lg-6 col-md-6">
+                    <ul>
+                      <li>
+                        <span>Type:</span> {{ anime.release_type }}
+                      </li>
+                      <li>
+                        <span>Studios:</span> {{ anime.studio }}
+                      </li>
+                      <li>
+                        <span>Date aired:</span> {{anime.release_date|date:"M d Y"}}
+                      </li>
+                      <li>
+                        <span>Status:</span> {{ anime.status }}
+                      </li>
+                      <li>
+                        <span>Genre:</span>
+                        {% for genre in anime.genre.all %}
+                        {% if forloop.counter == anime.genre.all|length %}
+                        {{genre}}
+                        {% else %}
+                        {{genre}},
+                        {% endif %} 
+                        {% endfor %}
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="col-lg-6 col-md-6">
+                    <ul>
+                      <li>
+                        <span>Duration:</span> {{ anime.duration }} min/ep
+                      </li>
+                      <li>
+                        <span>Views:</span> {{ anime.views }}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              <div class="anime__details__btn">
+                <a href="#" class="follow-btn"><i class="fa fa-heart-o"></i> Follow</a>
+                <a href="#" class="watch-btn"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-lg-8 col-md-8">
+          <div class="anime__details__review">
+            <div class="section-title">
+              <h5>Reviews</h5>
+            </div>
+            {% for review in reviews %}
+                <div class="anime__review__item">
+                <div class="anime__review__item__pic">
+                    <img src="{% static 'img/anime/review-1.jpg' %}" alt="" />
+                </div>
+                <div class="anime__review__item__text">
+                    <h6>{{ review.author }} - <span>1 Hour ago</span></h6>
+                    <p>{{ review.text }}</p>
+                </div>
+                </div>
+            {% endfor %}
+          </div>
+          {% if user.is_authenticated %}
+            <div class="anime__details__form">
+                <div class="section-title">
+                    <h5>Your Review</h5>
+                </div>
+                <form action="" method="post">
+                    {% csrf_token %}
+                    <textarea name="text" placeholder="Your Comment"></textarea>
+                    <button type="submit"><i class="fa fa-location-arrow"></i> Review</button>
+                </form>
+            </div>
+          {% endif %}
+        </div>
+        <div class="col-lg-4 col-md-4">
+          <div class="anime__details__sidebar">
+            <div class="section-title">
+              <h5>recently added...</h5>
+            </div>
+            {% for last_added_anime in last_added_animes %}
+                <div class="product__sidebar__view__item set-bg" data-setbg="{{ MEDIA_URL }}{{ last_added_anime.poster.url }}">
+                <div class="ep">{{ last_added_anime.finish_episode_count }}</div>
+                <div class="view">
+                    <i class="fa fa-eye"></i> {{ last_added_anime.views }}
+                </div>
+                <h5><a href="{% url 'detail' slug=last_added_anime.slug %}">{{ last_added_anime.name }}</a></h5>
+                </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+
+    function submit(){
+      let form = document.getElementsByClassName('rating-area')
+
+      form.submit()
+    }
+  </script>
+{% endblock %}
