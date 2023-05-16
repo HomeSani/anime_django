@@ -14,7 +14,8 @@ class EpisodeInline(admin.StackedInline):
 class AnimeModelAdmin(admin.ModelAdmin):
     model = Anime
     list_display = ['name',
-                    'name_on_japan', 'status', 'image_tag', 'release_date']
+                    'name_on_japan', 'status', 'image_tag', 'is_featured']
+    list_editable = ['is_featured']
     inlines = [EpisodeInline]
 
 

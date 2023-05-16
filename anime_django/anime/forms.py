@@ -20,3 +20,7 @@ class ReviewForm(Form):
 
 class VoteForm(Form):
     rating = IntegerField()
+
+
+class DateFilterForm(Form):
+    range = CharField(max_length=12)

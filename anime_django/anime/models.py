@@ -45,10 +45,37 @@ class Anime(models.Model):
     poster = models.ImageField(upload_to='posters')
     finish_episode_count = models.PositiveIntegerField(
         default=12, verbose_name="How many episodes are planned")
+    is_featured = models.BooleanField(default=False)
+    image_featured = models.ImageField(
+        upload_to='posters', blank=True, default='')
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Anime, self).save(*args, **kwargs)
+
+    def get_votes(self, anime):
+        return list(Vote.objects.filter(anime=anime))
+
+    def get_episodes(self, anime):
+        return list(Episode.objects.filter(anime=anime))
+
+    def get_rewiews(self, anime):
+        return list(Review.objects.filter(anime=anime))
+
+    def get_rating(self, anime):
+        votes = self.get_votes(anime=anime)
+        votes_count = len(votes)
+        rating = 0
+
+        if votes_count != 0:
+            rating = round(
+                sum(map(lambda vote: vote.count, votes)) / votes_count, 1)
+
+        return rating
+
+    def increment_views(self):
+        self.views += 1
+        super(Anime, self).save()
 
     def image_tag(self):
         return format_html('<img src="{}" height="50" />'.format(self.poster.url))
@@ -89,7 +116,8 @@ class Review(models.Model):
 class Vote(models.Model):
     count = models.PositiveIntegerField()
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    anime = models.ForeignKey(Anime, on_delete=models.CASCADE)
+    anime = models.ForeignKey(
+        Anime, on_delete=models.CASCADE, related_name='animes')
 
 
 class Follow(models.Model):

@@ -1,9 +1,278 @@
 {% extends 'base/base.html' %}
+{% load filters %}
 
 {% block content %}
-  <h1>Index page</h1>
 
-  {% if user.is_authenticated %}
-    <h2>Ты авторизован</h2>
-  {% endif %}
+    <style>
+        .product__sidebar__comment__item {
+            display: flex !important;
+            align-items: center;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .product__sidebar__comment__item__pic {
+            width: 30%;
+        }
+
+        .product__sidebar__comment__item__pic img {
+            width: 80%;
+        }
+
+        .product__sidebar__comment__item__text {
+            overflow: hidden;
+            width: 60%;
+        }
+
+        .filter__controls__form {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .filter__controls__form:not(:checked) > label.checked {
+            color: #e89f12;
+        }
+
+        .filter__controls__form:not(:checked) > input {
+            display: none;
+        }
+
+        .filter__controls__form:not(:checked) > label {
+            padding: 0 10px 0 10px;
+            cursor: pointer;
+            color: #ffffff;
+        }
+
+        .filter__controls__form:not(:checked) > label:hover {
+            color: #e89f12;
+        }
+
+        .filter__controls__form::checked > label {
+            color: #e89f12;
+        }
+
+        .filter__controls__form:not(:checked) > [for="day"]::before {
+            content: 'Day';
+            font-size: 13px;
+        }
+
+        .filter__controls__form:not(:checked) > [for="week"]::before {
+            content: 'Week';
+            font-size: 13px;
+        }
+
+        .filter__controls__form:not(:checked) > [for="month"]::before {
+            content: 'Month';
+            font-size: 13px;
+        }
+
+        .filter__controls__form:not(:checked) > [for="year"]::before {
+            content: 'Year';
+            font-size: 13px;
+        }
+
+        .filter__controls__form > label:active {
+            position: relative;
+        }
+    </style>
+    <!-- Hero Section Begin -->
+    {% if featured_animes|length != 0 %}
+        <section class="hero">
+            <div class="container">
+                <div class="hero__slider owl-carousel">
+                    {% for anime in featured_animes %}
+                        <div class="hero__items set-bg" data-setbg="{{ MEDIA_URL }}{{ anime.image_featured.url }}">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="hero__text">
+                                        <div class="label">{{ anime.genre.first }}</div>
+                                        <h2>{{ anime.name }}</h2>
+                                        <p>{{ anime.description|truncatewords:10 }}</p>
+                                        <a href="{% url 'detail' slug=anime.slug %}"><span>See Now</span> <i
+                                                class="fa fa-angle-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    {% endif %}
+    <!-- Hero Section End -->
+
+    <!-- Product Section Begin -->
+    <section class="product spad">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="trending__product">
+                        <div class="row">
+                            <div class="col-lg-8 col-md-8 col-sm-8">
+                                <div class="section-title">
+                                    <h4>Trending Now</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% for anime in rated_animes %}
+                                <div class="col-lg-4 col-md-6 col-sm-6">
+                                    <div class="product__item">
+                                        <div class="product__item__pic set-bg"
+                                             data-setbg="{{ MEDIA_URL }}{{ anime.poster.url }}">
+                                            <div class="ep">{{ anime.get_episodes|length }} / {{ anime.finish_episode_count }}</div>
+                                            <div class="comment">
+                                                <i class="fa fa-comments"></i> {{ anime|get_rewiews_count }}
+                                            </div>
+                                            <div class="view">
+                                                <i class="fa fa-eye"></i> {{ anime.views }}
+                                            </div>
+                                        </div>
+                                        <div class="product__item__text">
+                                            <ul>
+                                                <li>{{ anime.genre.first }}</li>
+                                                <li>{{ anime.release_type }}</li>
+                                            </ul>
+                                            <h5><a href="{% url 'detail' slug=anime.slug %}">{{ anime.name }}</a></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="popular__product">
+                        <div class="row">
+                            <div class="col-lg-8 col-md-8 col-sm-8">
+                                <div class="section-title">
+                                    <h4>Popular Animes</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% for anime in popular_animes %}
+                                <div class="col-lg-4 col-md-6 col-sm-6">
+                                    <div class="product__item">
+                                        <div class="product__item__pic set-bg"
+                                             data-setbg="{{ MEDIA_URL }}{{ anime.poster.url }}">
+                                            <div class="ep">{{ anime.get_episodes|length }} / {{ anime.finish_episode_count }}</div>
+                                            <div class="comment">
+                                                <i class="fa fa-comments"></i> {{ anime|get_rewiews_count }}
+                                            </div>
+                                            <div class="view">
+                                                <i class="fa fa-eye"></i> {{ anime.views }}
+                                            </div>
+                                        </div>
+                                        <div class="product__item__text">
+                                            <ul>
+                                                <li>{{ anime.genre.first }}</li>
+                                                <li>{{ anime.release_type }}</li>
+                                            </ul>
+                                            <h5><a href="{% url 'detail' slug=anime.slug %}">{{ anime.name }}</a></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="recent__product">
+                        <div class="row">
+                            <div class="col-lg-8 col-md-8 col-sm-8">
+                                <div class="section-title">
+                                    <h4>Recently Added Animes</h4>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            {% for anime in recently_animes %}
+                                <div class="col-lg-4 col-md-6 col-sm-6">
+                                    <div class="product__item">
+                                        <div class="product__item__pic set-bg"
+                                             data-setbg="{{ MEDIA_URL }}{{ anime.poster.url }}">
+                                            <div class="ep">{{ anime.get_episodes|length }} / {{ anime.finish_episode_count }}</div>
+                                            <div class="comment">
+                                                <i class="fa fa-comments"></i> {{ anime|get_rewiews_count }}
+                                            </div>
+                                            <div class="view">
+                                                <i class="fa fa-eye"></i> {{ anime.views }}
+                                            </div>
+                                        </div>
+                                        <div class="product__item__text">
+                                            <ul>
+                                                <li>{{ anime.genre.first }}</li>
+                                                <li>{{ anime.release_type }}</li>
+                                            </ul>
+                                            <h5><a href="{% url 'detail' slug=anime.slug %}">{{ anime.name }}</a></h5>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6 col-sm-8">
+                    <div class="product__sidebar">
+                        <div class="product__sidebar__view">
+                            <div class="section-title">
+                                <h5>Top Views</h5>
+                            </div>
+                            <ul class="filter__controls">
+                                <form action="" method="post" class="filter__controls__form">
+                                    {% csrf_token %}
+                                    <input type="radio" id="day" name="range"
+                                           value="day" onclick="submit()">
+                                    <label for="day"></label>
+                                    <input type="radio" id="week" name="range"
+                                           value="week" onclick="submit()">
+                                    <label for="week"></label>
+                                    <input type="radio" id="month" name="range"
+                                           value="month" onclick="submit()">
+                                    <label for="month"></label>
+                                    <input type="radio" id="year" name="range"
+                                           value="year" onclick="submit()">
+                                    <label for="year"></label>
+                                </form>
+                            </ul>
+                            <div class="filter__gallery">
+                                {% for anime in animes_views_date_range %}
+                                    <div class="product__sidebar__view__item set-bg"
+                                         data-setbg="{{ MEDIA_URL }}{{ anime.poster.url }}">
+                                        <div class="ep">{{ anime.get_episodes|length }} / {{ anime.finish_episode_count }}</div>
+                                        <div class="view">
+                                            <i class="fa fa-eye"></i> {{ anime.views }}
+                                        </div>
+                                        <h5><a href="{% url 'detail' slug=anime.slug %}">{{ anime.name }}</a></h5>
+                                    </div>
+                                {% endfor %}
+
+                                {% if animes_views_date_range|length == 0 %}
+                                    <h5 style="color: #fff; text-align: center">Not found...</h5>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="product__sidebar__comment">
+                            <div class="section-title">
+                                <h5>Recently Reviewed</h5>
+                            </div>
+                            {% for anime in recently_review_animes %}
+                                <div class="product__sidebar__comment__item">
+                                    <div class="product__sidebar__comment__item__pic">
+                                        <img src="{{ MEDIA_URL }}{{ anime.poster.url }}" alt=""/>
+                                    </div>
+                                    <div class="product__sidebar__comment__item__text">
+                                        <ul>
+                                            <li>{{ anime.genre.first }}</li>
+                                            <li>{{ anime.release_type }}</li>
+                                        </ul>
+                                        <h5><a href="{% url 'detail' slug=anime.slug %}">{{ anime.name }}</a></h5>
+                                        <span><i class="fa fa-eye"></i> {{ anime.views }} Viewes</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
