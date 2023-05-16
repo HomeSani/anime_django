@@ -1,17 +1,84 @@
-from functools import reduce
+from operator import attrgetter
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.views import View
 from django.urls import reverse
+from django.utils import timezone
 
-from .forms import SingupUserForm, LoginUserForm, ReviewForm, VoteForm
+from .forms import SingupUserForm, LoginUserForm, ReviewForm, VoteForm, DateFilterForm
 from .models import Anime, Review, Vote
 
 
 class IndexView(View):
     def get(self, request):
-        return render(request, 'anime/index.html', {'user': request.user})
+        animes = Anime.objects.all()
+        featured_animes = list(animes.filter(is_featured=True))
+        rated_animes_sorted = list(sorted(
+            list(map(lambda anime: (anime.get_rating(anime), anime), animes)), reverse=True))
+        rated_animes = list(map(lambda anime: anime[-1], rated_animes_sorted))
+        popular_animes = list(animes.order_by('-views'))[:6]
+        recently_animes = list(animes.order_by('-add_date'))[:6]
+        recently_review_animes = self.get_recently_reviwe_animes(animes=animes)
+        range = "year"
+
+        if request.GET.get("range"):
+            range = request.GET.get("range")
+
+        animes_views_date_range = self.get_animes_by_views_date_range(range=range)
+
+        return render(request, 'anime/index.html', {'featured_animes': featured_animes, 'rated_animes': rated_animes,
+                                                    'popular_animes': popular_animes,
+                                                    "recently_animes": recently_animes,
+                                                    "recently_review_animes": recently_review_animes,
+                                                    "animes_views_date_range": animes_views_date_range})
+
+    def post(self, request):
+        form = DateFilterForm(request.POST)
+
+        if form.is_valid():
+            range = form.cleaned_data["range"]
+
+            return redirect(reverse("index") + "?range=" + range)
+
+        return redirect(reverse("index"))
+
+    def get_animes_by_views_date_range(self, range='day'):
+        animes = self.get_anime_by_date_range(range=range)[:4]
+
+        return list(sorted(animes, key=attrgetter("views")))
+
+    def get_anime_by_date_range(self, range):
+        date = str(timezone.now()).split(" ")[0].split("-")
+        year = date[0]
+        month = date[1]
+        day = date[2]
+
+        if range == "day":
+            return list(Anime.objects.filter(add_date__day=day))
+        if range == "week":
+            current_week = timezone.now().isocalendar()[1]
+            return list(Anime.objects.filter(release_date__week=current_week))
+        elif range == "month":
+            return list(Anime.objects.filter(add_date__month=month))
+        elif range == "year":
+            return list(Anime.objects.filter(add_date__year=year))
+
+        return []
+
+    def get_recently_reviwe_animes(self, animes):
+        recently_reviews = []
+
+        for anime in animes:
+            reviews = anime.get_rewiews(anime=anime)
+
+            if len(reviews) != 0:
+                recently_reviews.append((sorted(map(lambda review: review.create_date, reviews))[-1], anime))
+                recently_reviews = sorted(recently_reviews, reverse=True)[:6]
+            else:
+                recently_reviews = []
+
+        return list(map(lambda review: review[-1], recently_reviews))
 
 
 class AnimeDetailView(View):
@@ -19,23 +86,18 @@ class AnimeDetailView(View):
         anime = Anime.objects.get(slug=slug)
         reviews = list(Review.objects.filter(anime=anime))
         last_added_animes = list(Anime.objects.order_by('-add_date')[:5])
-        votes = list(Vote.objects.filter(anime=anime))
+        votes = anime.get_votes(anime=anime)
         votes_count = len(votes)
-        rating = 0
+        rating = anime.get_rating(anime=anime)
         user_vote = Vote.objects.filter(
             user=request.user, anime=anime).exists()
         user_vote_count = []
 
-        if votes_count != 0:
-            rating = round(
-                sum(map(lambda vote: vote.count, votes)) / votes_count, 1)
-
         if user_vote:
             vote = Vote.objects.get(user=request.user, anime=anime)
-            user_vote_count = range(vote.count+1)
+            user_vote_count = range(vote.count + 1)
 
-        anime.views += 1
-        anime.save()
+        anime.increment_views()
 
         return render(request, 'anime/detail.html', {
             'anime': anime,
