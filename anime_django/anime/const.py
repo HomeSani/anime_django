@@ -1,3 +1,4 @@
+#  TODO: Почему тут повторение?
 RELEASE_TYPES = (
     ('Film', 'Film'),
     ('TV Serial', 'TV Serial'),

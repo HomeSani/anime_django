@@ -3,6 +3,7 @@ name = "anime-django"
 version = "0.1.0"
 description = ""
 authors = ["HomeSani <dfghjjhgfd311@gmail.com>"]
+# TODO: Выдает ошибкку при установке поетри что нет файла
 readme = "README.md"
 packages = [{include = "anime_django"}]
 

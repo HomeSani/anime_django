@@ -10,23 +10,23 @@ from .forms import SingupUserForm, LoginUserForm, ReviewForm, VoteForm, DateFilt
 from .models import Anime, Review, Vote
 
 
-class IndexView(View):
+class IndexView(View):  # Зачем все приводить к листу? В будущем этот метод будет очень дорогой, слишком много обработки как будто. Еще можешь сразу по просмотром соритровать
     def get(self, request):
         animes = Anime.objects.all()
         featured_animes = list(animes.filter(is_featured=True))
         rated_animes_sorted = list(sorted(
-            list(map(lambda anime: (anime.get_rating(anime), anime), animes)), reverse=True))
+            list(map(lambda anime: (anime.get_rating(anime), anime), animes)), reverse=True))  # лямбды плохо читаются, выделяй методы
         rated_animes = list(map(lambda anime: anime[-1], rated_animes_sorted))
         popular_animes = list(animes.order_by('-views'))[:6]
         recently_animes = list(animes.order_by('-add_date'))[:6]
         recently_review_animes = self.get_recently_reviwe_animes(animes=animes)
         range = "year"
 
-        if request.GET.get("range"):
+        if request.GET.get("range"):  # range = request.GET.get("range", range)
             range = request.GET.get("range")
 
-        animes_views_date_range = self.get_animes_by_views_date_range(range=range)
-
+        animes_views_date_range = self.get_animes_by_views_date_range(range=range)  # нейминг не нравится, не совсем понимаю
+        #  context = { ... и пошел собирать контекст,, который сюда просто передашь
         return render(request, 'anime/index.html', {'featured_animes': featured_animes, 'rated_animes': rated_animes,
                                                     'popular_animes': popular_animes,
                                                     "recently_animes": recently_animes,
@@ -53,7 +53,7 @@ class IndexView(View):
         year = date[0]
         month = date[1]
         day = date[2]
-
+        #  Очень странный фрагмент кода, может лучше сделать везде дни?
         if range == "day":
             return list(Anime.objects.filter(add_date__day=day))
         if range == "week":
@@ -66,14 +66,14 @@ class IndexView(View):
 
         return []
 
-    def get_recently_reviwe_animes(self, animes):
+    def get_recently_reviwe_animes(self, animes):  # нейминге ошибка
         recently_reviews = []
 
         for anime in animes:
-            reviews = anime.get_rewiews(anime=anime)
+            reviews = anime.get_rewiews(anime=anime)  # хочу anime.reviews,
 
-            if len(reviews) != 0:
-                recently_reviews.append((sorted(map(lambda review: review.create_date, reviews))[-1], anime))
+            if len(reviews) != 0:  # if not reviews
+                recently_reviews.append((sorted(map(lambda review: review.create_date, reviews))[-1], anime))  # слишком много лямб, код некрасивый
                 recently_reviews = sorted(recently_reviews, reverse=True)[:6]
             else:
                 recently_reviews = []
@@ -87,9 +87,9 @@ class AnimeDetailView(View):
         reviews = list(Review.objects.filter(anime=anime))
         last_added_animes = list(Anime.objects.order_by('-add_date')[:5])
         votes = anime.get_votes(anime=anime)
-        votes_count = len(votes)
+        votes_count = len(votes)  # используется 1 раз, можно не создавать отдельную переменную
         rating = anime.get_rating(anime=anime)
-        user_vote = Vote.objects.filter(
+        user_vote = Vote.objects.filter(  # Все запросы в самом начале методов
             user=request.user, anime=anime).exists()
         user_vote_count = []
 
@@ -172,7 +172,7 @@ class LoginView(View):
             password = form.cleaned_data['password']
             user = authenticate(request, username=username, password=password)
 
-            if user is not None:
+            if user is not None:  # if user
                 login(request, user)
 
                 return redirect(reverse('index'))
